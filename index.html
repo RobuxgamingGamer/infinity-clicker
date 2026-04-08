@@ -2,29 +2,45 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Infinity Clicker</title>
+  <title>Infinity Clicker ∞</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
   <link rel="stylesheet" href="style.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 </head>
 <body>
 
-<h1>🔥 Infinity Clicker</h1>
+<h1>🌌 Infinity Clicker ∞</h1>
 
 <div id="points">0</div>
 
 <button id="clickBtn">CLICK</button>
 
-<h2>Upgrades</h2>
-<button onclick="buyUpgrade()">Upgrade (+1 per click)</button>
-<div id="upgradeCost"></div>
+<div class="panel">
+  <h2>Upgrades</h2>
+  <button onclick="buyUpgrade()">Upgrade</button>
+  <div id="upgradeCost"></div>
+</div>
 
-<h2>Automation</h2>
-<button onclick="buyAuto()">Auto Clicker</button>
-<div id="autoInfo"></div>
+<div class="panel">
+  <h2>Automation</h2>
+  <button onclick="buyAuto()">Auto</button>
+  <div id="autoInfo"></div>
+</div>
 
-<h2>Prestige</h2>
-<button onclick="prestige()">Prestige</button>
-<div id="prestigeInfo"></div>
+<div class="panel">
+  <h2>Prestige</h2>
+  <button onclick="prestige()">Prestige</button>
+  <div id="prestigeInfo"></div>
+</div>
+
+<div class="panel">
+  <h2>Rebirth 🌠</h2>
+  <button onclick="rebirth()">Rebirth</button>
+  <div id="rebirthInfo"></div>
+</div>
+
+<div id="particles"></div>
 
 <script src="script.js"></script>
 </body>
