@@ -34,8 +34,18 @@ function save() {
 }
 
 // Click
+let clickTimes = [];
+
 document.getElementById("clickBtn").onclick = () => {
-  points += perClick + prestigePoints;
+  let now = Date.now();
+
+  // Keep only clicks in last 1 second
+  clickTimes = clickTimes.filter(t => now - t < 1000);
+
+  if (clickTimes.length < 50) {
+    points += perClick + prestigePoints;
+    clickTimes.push(now);
+  }
 };
 
 // Upgrade
