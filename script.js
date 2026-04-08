@@ -1,3 +1,4 @@
+// CORE
 let points = 0n;
 let perClick = 1n;
 let upgradeCost = 10n;
@@ -5,8 +6,10 @@ let upgradeCost = 10n;
 let auto = 0n;
 let autoCost = 50n;
 
-let prestigePoints = 0n;
-let rebirths = 0n;
+// PRESTIGE SYSTEM
+let prestigeLevel = 0;
+let prestigeRequirement = 1_000_000n;
+let prestigeMultiplier = 1;
 
 // CPS LIMIT
 let clickTimes = [];
@@ -20,8 +23,10 @@ function load() {
     upgradeCost = BigInt(save.upgradeCost);
     auto = BigInt(save.auto);
     autoCost = BigInt(save.autoCost);
-    prestigePoints = BigInt(save.prestigePoints);
-    rebirths = BigInt(save.rebirths || 0);
+
+    prestigeLevel = save.prestigeLevel || 0;
+    prestigeRequirement = BigInt(save.prestigeRequirement || 1000000);
+    prestigeMultiplier = save.prestigeMultiplier || 1;
   }
 }
 
@@ -33,8 +38,9 @@ function save() {
     upgradeCost: upgradeCost.toString(),
     auto: auto.toString(),
     autoCost: autoCost.toString(),
-    prestigePoints: prestigePoints.toString(),
-    rebirths: rebirths.toString()
+    prestigeLevel,
+    prestigeRequirement: prestigeRequirement.toString(),
+    prestigeMultiplier
   }));
 }
 
@@ -44,58 +50,59 @@ document.getElementById("clickBtn").onclick = (e) => {
   clickTimes = clickTimes.filter(t => now - t < 1000);
 
   if (clickTimes.length < 50) {
-    points += perClick + prestigePoints + rebirths;
-    clickTimes.push(now);
+    let gain = Number(perClick) * prestigeMultiplier;
+    points += BigInt(Math.floor(gain));
 
+    clickTimes.push(now);
     spawnParticles(e.clientX, e.clientY);
-    shake();
   }
 };
 
-// UPGRADES
+// UPGRADES (BOOSTED BY PRESTIGE)
 function buyUpgrade() {
   if (points >= upgradeCost) {
     points -= upgradeCost;
-    perClick += 1n + prestigePoints;
+
+    let boost = 2 * prestigeMultiplier;
+    perClick += BigInt(Math.floor(boost));
+
     upgradeCost *= 2n;
   }
 }
 
-// AUTO
+// AUTO (STACKABLE + SCALED)
 function buyAuto() {
   if (points >= autoCost) {
     points -= autoCost;
     auto += 1n;
-    autoCost *= 3n;
+    autoCost *= 2n;
   }
 }
 
 // PRESTIGE
 function prestige() {
-  if (points >= 1_000_000n) {
-    let gain = points / 1_000_000n;
-    prestigePoints += gain;
+  if (points >= prestigeRequirement) {
+    prestigeLevel++;
 
+    // MULTIPLIER ×1.5
+    prestigeMultiplier *= 1.5;
+
+    // REQUIREMENT DOUBLES
+    prestigeRequirement *= 2n;
+
+    // RESET
     points = 0n;
     perClick = 1n;
     auto = 0n;
-  }
-}
-
-// REBIRTH
-function rebirth() {
-  if (points >= 1_000_000_000n) {
-    rebirths += 1n;
-    points = 0n;
-    perClick = 1n;
-    prestigePoints = 0n;
-    auto = 0n;
+    upgradeCost = 10n;
+    autoCost = 50n;
   }
 }
 
 // AUTO LOOP
 setInterval(() => {
-  points += auto * (1n + prestigePoints + rebirths);
+  let gain = Number(auto) * prestigeMultiplier;
+  points += BigInt(Math.floor(gain));
 }, 1000);
 
 // PARTICLES
@@ -121,13 +128,7 @@ function spawnParticles(x, y) {
   }
 }
 
-// SCREEN SHAKE
-function shake() {
-  document.body.style.transform = "translate(2px,2px)";
-  setTimeout(() => document.body.style.transform = "translate(0,0)", 50);
-}
-
-// FORMAT (INSANITY)
+// FORMAT (SHORTENED BUT CLEAN)
 function format(num) {
   num = BigInt(num);
   let len = num.toString().length;
@@ -136,26 +137,11 @@ function format(num) {
 
   let exp = len - 1;
 
-  if (exp >= 100 && exp < 10000) {
-    let g = Math.floor(exp / 100);
-    return g === 1 ? "Googol" : "Googol^" + g;
-  }
-
-  if (exp >= 10000 && exp < 1000000) {
-    return "Googolplex" + "plex".repeat(Math.floor(exp/10000)-1);
-  }
-
-  if (exp >= 1000000 && exp < 1e9) {
-    return "10" + "^".repeat(Math.min(9, Math.floor(Math.log10(exp)))) + exp;
-  }
-
-  if (exp >= 1e9 && exp < 1e12) {
-    return "Graham's Number 😈";
-  }
-
-  if (exp >= 1e12) {
-    return "TREE(3) 🌳💀";
-  }
+  if (exp >= 100 && exp < 10000) return "Googol";
+  if (exp >= 10000 && exp < 1e6) return "Googolplex";
+  if (exp >= 1e6 && exp < 1e9) return "10^" + exp;
+  if (exp >= 1e9 && exp < 1e12) return "Graham's Number 😈";
+  if (exp >= 1e12) return "TREE(3) 🌳💀";
 
   return num.toString();
 }
@@ -163,10 +149,17 @@ function format(num) {
 // UPDATE
 function update() {
   document.getElementById("points").innerText = format(points);
-  document.getElementById("upgradeCost").innerText = "Cost: " + format(upgradeCost);
-  document.getElementById("autoInfo").innerText = "Owned: " + format(auto);
-  document.getElementById("prestigeInfo").innerText = "Prestige: " + format(prestigePoints);
-  document.getElementById("rebirthInfo").innerText = "Rebirths: " + format(rebirths);
+
+  document.getElementById("upgradeCost").innerText =
+    "Cost: " + format(upgradeCost);
+
+  document.getElementById("autoInfo").innerText =
+    "Owned: " + format(auto) + " | Cost: " + format(autoCost);
+
+  document.getElementById("prestigeInfo").innerText =
+    "Prestige Lv: " + prestigeLevel +
+    " | Multiplier: x" + prestigeMultiplier.toFixed(2) +
+    " | Need: " + format(prestigeRequirement);
 }
 
 // LOOP
